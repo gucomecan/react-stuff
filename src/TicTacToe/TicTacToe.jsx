@@ -3,7 +3,7 @@ import Board from './Components/Board';
 import './TicTacToe.css';
 
 // TODO
-// [ ] crossing winning line
+// [x] base crossing winning line
 // [ ] calc first player(random)
 // [ ] history
 
@@ -28,13 +28,14 @@ const checkForEnd = (allVals, nextVal, currI) => {
     return winningCombo.filter((address) => allVals[address] === nextVal).length === 3;
   });
 
-  return winningCombo ? nextVal : null;
+  return { winningCombo, winner: winningCombo ? nextVal : null };
 };
 
 const TicTacToe = () => {
   const [vals, setVals] = useState(initCellsValues);
   const [isCurrentTic, setIsCurrentTic] = useState(false);
-  const [winner, setWinner] = useState(undefined);
+  const [winner, setWinner] = useState();
+  const [winCombo, setWinCombo] = useState(undefined);
   const [hasStarted, setHasStarted] = useState(false);
 
   const handleCellClick = (i) => {
@@ -47,7 +48,8 @@ const TicTacToe = () => {
     newVals[i] = nextMove;
     setVals(newVals);
 
-    const gameWinner = checkForEnd(newVals, nextMove, i);
+    const { winningCombo, winner: gameWinner } = checkForEnd(newVals, nextMove, i);
+    setWinCombo(winningCombo);
     setWinner(gameWinner);
   };
 
@@ -71,6 +73,7 @@ const TicTacToe = () => {
   const handleStart = () => {
     setHasStarted(true);
     setVals(initCellsValues);
+    setWinCombo()
     setWinner();
   };
 
@@ -81,7 +84,7 @@ const TicTacToe = () => {
       </button>
 
       <p className={`winner-title ${gameEnd ? '' : 'hidden'}`}>{getWinnerTitle()}</p>
-      <Board cellVals={vals} onCellClick={handleCellClick} />
+      <Board cellVals={vals} onCellClick={handleCellClick} winningCombo={winCombo} />
     </div>
   );
 };

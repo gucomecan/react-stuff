@@ -16,6 +16,49 @@
   border: 1px solid black;
   border-radius: 0;
   background-color: antiquewhite;
+  position: relative;
+}
+
+.cell.win-horizontal::after {
+  content: ' ';
+  width: 60px;  
+  border-top: 1px solid black;
+  position: absolute;
+  top: 31px;
+  left: 0;
+  z-index: 10;
+}
+.cell.win-vertical::after {
+  content: ' ';
+  width: 60px;
+  border-top: 1px solid black;
+  position: absolute;
+  top: 29px;
+  left: 0;
+  z-index: 10;
+  transform: rotate(90deg);
+}
+
+.cell.win-diagonal-right::after {
+  content: ' ';
+  width: 85px;
+  border-top: 1px solid black;
+  position: absolute;
+  top: 29px;
+  left: -13px;
+  z-index: 10;
+  transform: rotate(45deg);
+}
+
+.cell.win-diagonal-left::after {
+  content: ' ';
+  width: 85px;
+  border-top: 1px solid black;
+  position: absolute;
+  top: 29px;
+  left: -13px;
+  z-index: 10;
+  transform: rotate(-45deg);
 }
 
 .cell.tic {
