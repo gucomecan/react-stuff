@@ -1,0 +1,27 @@
+.row {
+  width: 180px;
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid white;
+  background-color: red;
+}
+
+.cell {
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  margin: 0;
+  font-size: 35px;
+  color: black;
+  border: 1px solid black;
+  border-radius: 0;
+  background-color: antiquewhite;
+}
+
+.cell.tic {
+  color: rgb(231, 108, 64);
+}
+
+.cell.tac {
+  color:rgb(28, 52, 184)
+}
