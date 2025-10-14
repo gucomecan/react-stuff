@@ -1,13 +1,15 @@
 import { useState } from 'react';
+
 import Board from './Components/Board';
 import './TicTacToe.css';
 
 // TODO
 // [x] base crossing winning line
 // [ ] calc first player(random)
-// [ ] history
+// [x] history
 
-const initCellsValues = Array(9).fill(null);
+// untils and initial values
+const initCellsState = Array(9).fill(null);
 
 const winningCombinations = [
   [0, 1, 2],
@@ -20,61 +22,105 @@ const winningCombinations = [
   [2, 4, 6],
 ];
 
-const checkForEnd = (allVals, nextVal, currI) => {
+const initialWinnerState = { winCombo: null, player: null };
+// NOTE: items -> {[..., {address: number, player: O | X}] , activeIndex: number}
+const initialHistoryState = { items: [], activeIndex: null };
+
+const checkForEnd = (allVals, lastPlayer, address) => {
   const winningCombo = winningCombinations.find((winningCombo) => {
-    const winningIndex = winningCombo.indexOf(currI);
+    const winningIndex = winningCombo.indexOf(address);
     if (winningIndex < 0) return false;
 
-    return winningCombo.filter((address) => allVals[address] === nextVal).length === 3;
+    return winningCombo.filter((address) => allVals[address] === lastPlayer).length === 3;
   });
 
-  return { winningCombo, winner: winningCombo ? nextVal : null };
+  return { winningCombo, winnerPlayer: winningCombo ? lastPlayer : null };
+};
+
+const getTurnCoordinates = (index) => {
+  const nonArrIndex = index + 1;
+  const x = Math.ceil(nonArrIndex / 3);
+  let y = 3;
+
+  const leftover = nonArrIndex % 3;
+  if ([1, 2].includes(leftover)) {
+    y = leftover;
+  }
+
+  return { x, y };
 };
 
 const TicTacToe = () => {
-  const [vals, setVals] = useState(initCellsValues);
+  const [vals, setVals] = useState(initCellsState);
   const [isCurrentTic, setIsCurrentTic] = useState(false);
-  const [winner, setWinner] = useState();
-  const [winCombo, setWinCombo] = useState(undefined);
+  const [winner, setWinner] = useState(initialWinnerState);
   const [hasStarted, setHasStarted] = useState(false);
 
-  const handleCellClick = (i) => {
-    if (!hasStarted || winner || vals[i]) return;
+  const [history, setHistory] = useState(initialHistoryState);
 
-    const nextMove = isCurrentTic ? 'X' : 'O';
+  const nextPlayer = isCurrentTic ? 'X' : 'O';
+  const tie = !vals.includes(null) && !winner.player;
+  const gameEnd = winner.player || tie;
+  const showBtn = !hasStarted || gameEnd;
+
+  const handleCellClick = (i) => {
+    if (!hasStarted || winner.player || vals[i]) return;
+
     setIsCurrentTic((prev) => !prev);
+    setHistory((prev) => {
+      const historyItems = prev.items?.slice(0, history.activeIndex + 1);
+
+      return {
+        items: [...historyItems, { player: nextPlayer, address: i }],
+        activeIndex: historyItems.length,
+      };
+    });
 
     const newVals = [...vals];
-    newVals[i] = nextMove;
+    newVals[i] = nextPlayer;
     setVals(newVals);
 
-    const { winningCombo, winner: gameWinner } = checkForEnd(newVals, nextMove, i);
-    setWinCombo(winningCombo);
-    setWinner(gameWinner);
+    const { winningCombo, winnerPlayer } = checkForEnd(newVals, nextPlayer, i);
+    setWinner({ winCombo: winningCombo, player: winnerPlayer });
   };
 
-  const tie = !vals.includes(null) && !winner;
-  const gameEnd = winner || tie;
-  const showBtn = !hasStarted || gameEnd;
-  const getWinnerTitle = () => {
-    let title = '';
+  const getTitle = () => {
+    let title = `Next player: ${nextPlayer}`;
+
     if (tie) {
       title = 'No winner :/';
       return title;
     }
 
-    if (winner) {
-      title = `Winner is: ${winner}`;
+    if (winner.player) {
+      title = `Winner is: ${winner.player}`;
     }
 
     return title;
   };
 
   const handleStart = () => {
+    // TODO: calc random first player
     setHasStarted(true);
-    setVals(initCellsValues);
-    setWinCombo()
-    setWinner();
+    setVals(initCellsState);
+    setWinner(initialWinnerState);
+    setHistory(initialHistoryState);
+  };
+
+  const handleBackInTime = (stepToGo) => {
+    const targetHistory = history?.items.slice(0, stepToGo + 1);
+    const newVals = [...initCellsState];
+    targetHistory.forEach((historyItem) => {
+      newVals[historyItem.address] = historyItem.player;
+      setIsCurrentTic(!(historyItem.player === 'X'));
+    });
+
+    const lastHistoryItem = targetHistory.at(-1);
+    const { winningCombo, winnerPlayer } = checkForEnd(newVals, lastHistoryItem.player, lastHistoryItem.address);
+
+    setVals(newVals);
+    setWinner({ winCombo: winningCombo, player: winnerPlayer });
+    setHistory((prev) => ({ ...prev, activeIndex: stepToGo }));
   };
 
   return (
@@ -83,8 +129,19 @@ const TicTacToe = () => {
         {gameEnd ? 'New game' : 'Start game'}
       </button>
 
-      <p className={`winner-title ${gameEnd ? '' : 'hidden'}`}>{getWinnerTitle()}</p>
-      <Board cellVals={vals} onCellClick={handleCellClick} winningCombo={winCombo} />
+      <p className={'title'}>{getTitle()}</p>
+      <Board cellVals={vals} onCellClick={handleCellClick} winningCombo={winner.winCombo} />
+      {history?.items.map((historyItem, i) => {
+        const { x, y } = getTurnCoordinates(historyItem.address);
+        return (
+          <p key={i} className="history-item">
+            Player: {historyItem.player} on position x: {x}, y: {y}
+            <button onClick={() => handleBackInTime(i)} className={history.activeIndex === i ? 'active' : ''}>
+              Go here
+            </button>
+          </p>
+        );
+      })}
     </div>
   );
 };

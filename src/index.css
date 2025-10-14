@@ -26,6 +26,12 @@ h1 {
   line-height: 1.1;
 }
 
+p {
+  padding: 0;
+  margin: 0 0 8px 0;
+  font-size: 12px;
+}
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -39,4 +45,8 @@ button {
 }
 button:hover {
   border-color: #646cff;
+}
+
+.hidden {
+  visibility: hidden;
 }
