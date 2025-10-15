@@ -3,11 +3,6 @@ import { useState } from 'react';
 import Board from './Components/Board';
 import './TicTacToe.css';
 
-// TODO
-// [x] base crossing winning line
-// [ ] calc first player(random)
-// [x] history
-
 // untils and initial values
 const initCellsState = Array(9).fill(null);
 
@@ -37,12 +32,14 @@ const checkForEnd = (allVals, lastPlayer, address) => {
   return { winningCombo, winnerPlayer: winningCombo ? lastPlayer : null };
 };
 
+// [/1,2,3/ /4,5,6/ /7,8,9/] => coordinates(x,y) related to indexes that are scaled up by 1 for easies calculation
 const getTurnCoordinates = (index) => {
-  const nonArrIndex = index + 1;
-  const x = Math.ceil(nonArrIndex / 3);
+  const scaledArrIndex = index + 1;
+  const x = Math.ceil(scaledArrIndex / 3);
+  // default value assume number can be devided by 3
   let y = 3;
 
-  const leftover = nonArrIndex % 3;
+  const leftover = scaledArrIndex % 3;
   if ([1, 2].includes(leftover)) {
     y = leftover;
   }
@@ -50,9 +47,16 @@ const getTurnCoordinates = (index) => {
   return { x, y };
 };
 
+const playersArr = ['X', 'O'];
+const isFirstPlayerTic = () => {
+  const valIndex = Math.round(Math.random());
+
+  return playersArr[0] === playersArr[valIndex];
+};
+
 const TicTacToe = () => {
   const [vals, setVals] = useState(initCellsState);
-  const [isCurrentTic, setIsCurrentTic] = useState(false);
+  const [isCurrentTic, setIsCurrentTic] = useState(() => isFirstPlayerTic());
   const [winner, setWinner] = useState(initialWinnerState);
   const [hasStarted, setHasStarted] = useState(false);
 
@@ -100,7 +104,6 @@ const TicTacToe = () => {
   };
 
   const handleStart = () => {
-    // TODO: calc random first player
     setHasStarted(true);
     setVals(initCellsState);
     setWinner(initialWinnerState);
@@ -124,13 +127,15 @@ const TicTacToe = () => {
   };
 
   return (
-    <div className="container">
-      <button onClick={handleStart} className={`start-btn ${showBtn ? '' : 'hidden'}`}>
-        {gameEnd ? 'New game' : 'Start game'}
-      </button>
+    <div>
+      <div className="main-container">
+        <button onClick={handleStart} className={`start-btn ${showBtn ? '' : 'hidden'}`}>
+          {gameEnd ? 'New game' : 'Start game'}
+        </button>
 
-      <p className={'title'}>{getTitle()}</p>
-      <Board cellVals={vals} onCellClick={handleCellClick} winningCombo={winner.winCombo} />
+        <p className={'title'}>{getTitle()}</p>
+        <Board cellVals={vals} onCellClick={handleCellClick} winningCombo={winner.winCombo} />
+      </div>
       {history?.items.map((historyItem, i) => {
         const { x, y } = getTurnCoordinates(historyItem.address);
         return (
